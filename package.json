@@ -1,0 +1,30 @@
+{
+  "name": "mapa-solos-paraiba",
+  "version": "1.0.0",
+  "description": "Mapa interativo de solos dos municipios da Paraiba usando geobr, SoilGrids, Supabase, Express e Leaflet.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "dev": "node --watch src/server/index.js",
+    "start": "node src/server/index.js",
+    "seed": "node scripts/seed.js",
+    "build:frontend": "node scripts/build-frontend.js",
+    "serve:frontend": "node scripts/serve-frontend.js"
+  },
+  "dependencies": {
+    "@turf/centroid": "^7.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "hyparquet": "^1.26.0",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.60.0",
+    "supertest": "^7.0.0"
+  }
+}
