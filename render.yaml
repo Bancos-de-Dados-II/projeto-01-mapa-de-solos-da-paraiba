@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: mapa-solos-pb-api
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: "true"
+      - key: CORS_ORIGIN
+        sync: false
+      - key: NODE_VERSION
+        value: "20"
