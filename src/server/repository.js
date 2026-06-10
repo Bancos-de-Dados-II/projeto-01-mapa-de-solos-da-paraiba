@@ -1,7 +1,7 @@
 export function createMunicipalityRepository(pool) {
   return {
-    async listMunicipalities() {
-      const { sql, values } = buildMunicipalityQuery();
+    async listMunicipalities(filters = {}) {
+      const { sql, values } = buildMunicipalityQuery(filters);
       const result = await pool.query(sql, values);
       return result.rows;
     },
@@ -88,7 +88,39 @@ export function createMunicipalityRepository(pool) {
   };
 }
 
-export function buildMunicipalityQuery() {
+export function buildMunicipalityQuery(filters = {}) {
+  const values = [];
+  const where = [];
+
+  if (Number.isFinite(filters.phMin)) {
+    values.push(filters.phMin);
+    where.push(`ph >= $${values.length}`);
+  }
+
+  if (Number.isFinite(filters.phMax)) {
+    values.push(filters.phMax);
+    where.push(`ph <= $${values.length}`);
+  }
+
+  if (filters.texture) {
+    values.push(filters.texture);
+    where.push(`texture_class = $${values.length}`);
+  }
+
+  if (filters.municipality) {
+    const municipalityText = String(filters.municipality).trim();
+    const municipalityCode = Number(municipalityText);
+    if (Number.isInteger(municipalityCode)) {
+      values.push(municipalityCode);
+      where.push(`code_muni = $${values.length}`);
+    } else {
+      values.push(`%${municipalityText}%`);
+      where.push(`lower(name_muni) like lower($${values.length})`);
+    }
+  }
+
+  const whereClause = where.length ? `where ${where.join(" and ")}` : "";
+
   return {
     sql: `
       select
@@ -107,8 +139,9 @@ export function buildMunicipalityQuery() {
         centroid_lon,
         ST_AsGeoJSON(geom)::json as geometry
       from public.soil_municipalities
+      ${whereClause}
       order by name_muni asc
     `,
-    values: []
+    values
   };
 }

@@ -29,13 +29,17 @@ export function createApp({
   app.use(cors({ origin: corsOrigin === "*" ? true : corsOrigin }));
   app.use(express.json({ limit: "1mb" }));
 
-  app.get("/health", (_request, response) => {
+  const healthHandler = (_request, response) => {
     response.json({ status: "ok" });
-  });
+  };
+
+  app.get("/health", healthHandler);
+  app.get("/api/health", healthHandler);
 
   app.get("/api/municipios", async (request, response, next) => {
     try {
-      const records = await repository.listMunicipalities();
+      const filters = parseMunicipalityFilters(request.query);
+      const records = await repository.listMunicipalities(filters);
       response.json(toFeatureCollection(records));
     } catch (error) {
       next(error);
@@ -82,7 +86,7 @@ export function parseMunicipalityFilters(query) {
     phMin: parseOptionalNumber(query.phMin, "phMin"),
     phMax: parseOptionalNumber(query.phMax, "phMax"),
     texture: parseOptionalText(query.texture),
-    q: parseOptionalText(query.q)
+    municipality: parseOptionalText(query.municipality)
   };
 }
 

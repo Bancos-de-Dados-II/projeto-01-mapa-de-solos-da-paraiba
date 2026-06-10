@@ -13,13 +13,21 @@ describe("server app", () => {
     assert.equal(response.body.status, "ok");
   });
 
+  it("responds to Vercel API health checks", async () => {
+    const app = createApp({ repository: fakeRepository(), soilService: fakeSoilService() });
+
+    const response = await request(app).get("/api/health").expect(200);
+
+    assert.equal(response.body.status, "ok");
+  });
+
   it("returns municipality outlines as a GeoJSON FeatureCollection", async () => {
     const calls = [];
     const app = createApp({
       soilService: fakeSoilService(),
       repository: fakeRepository({
-        async listMunicipalities() {
-          calls.push("called");
+        async listMunicipalities(filters) {
+          calls.push(filters);
           return [featureRecord()];
         }
       })
@@ -27,10 +35,40 @@ describe("server app", () => {
 
     const response = await request(app).get("/api/municipios").expect(200);
 
-    assert.deepEqual(calls, ["called"]);
+    assert.deepEqual(calls, [{ phMin: undefined, phMax: undefined, texture: undefined, municipality: undefined }]);
     assert.equal(response.body.type, "FeatureCollection");
     assert.equal(response.body.features.length, 1);
     assert.equal(response.body.features[0].properties.code_muni, 2507507);
+  });
+
+  it("passes municipality filters to the repository", async () => {
+    const calls = [];
+    const app = createApp({
+      soilService: fakeSoilService(),
+      repository: fakeRepository({
+        async listMunicipalities(filters) {
+          calls.push(filters);
+          return [featureRecord()];
+        }
+      })
+    });
+
+    await request(app)
+      .get("/api/municipios")
+      .query({
+        phMin: "6",
+        phMax: "7.2",
+        texture: "Textura media",
+        municipality: "Campina"
+      })
+      .expect(200);
+
+    assert.deepEqual(calls[0], {
+      phMin: 6,
+      phMax: 7.2,
+      texture: "Textura media",
+      municipality: "Campina"
+    });
   });
 
   it("returns soil analysis for a coordinate", async () => {

@@ -12,24 +12,11 @@ export function createLocalRepository({
   let cachedFeatures = null;
 
   return {
-    async listMunicipalities() {
+    async listMunicipalities(filters = {}) {
       const features = await loadFeatures();
-      return features.map((feature) => ({
-        code_muni: feature.properties.code_muni,
-        name_muni: feature.properties.name_muni,
-        abbrev_state: feature.properties.abbrev_state,
-        ph: null,
-        fertility: "Sem dados",
-        clay: null,
-        sand: null,
-        nitrogen: null,
-        cec: null,
-        soc: null,
-        texture: "Sem dados",
-        centroid_lat: null,
-        centroid_lon: null,
-        geometry: feature.geometry
-      }));
+      return features
+        .map((feature) => toRecord(feature))
+        .filter((record) => matchesFilters(record, filters));
     },
     async findMunicipalityByCoordinate() {
       return null;
@@ -56,4 +43,42 @@ export function createLocalRepository({
     cachedFeatures = geoJson.features ?? [];
     return cachedFeatures;
   }
+}
+
+function toRecord(feature) {
+  return {
+    code_muni: feature.properties.code_muni,
+    name_muni: feature.properties.name_muni,
+    abbrev_state: feature.properties.abbrev_state,
+    ph: feature.properties.ph ?? null,
+    fertility: feature.properties.fertility ?? "Sem dados",
+    clay: feature.properties.clay ?? null,
+    sand: feature.properties.sand ?? null,
+    nitrogen: feature.properties.nitrogen ?? null,
+    cec: feature.properties.cec ?? null,
+    soc: feature.properties.soc ?? null,
+    texture: feature.properties.texture ?? "Sem dados",
+    centroid_lat: feature.properties.centroid_lat ?? null,
+    centroid_lon: feature.properties.centroid_lon ?? null,
+    geometry: feature.geometry
+  };
+}
+
+function matchesFilters(record, filters) {
+  if (Number.isFinite(filters.phMin) && !(Number(record.ph) >= filters.phMin)) {
+    return false;
+  }
+  if (Number.isFinite(filters.phMax) && !(Number(record.ph) <= filters.phMax)) {
+    return false;
+  }
+  if (filters.texture && record.texture !== filters.texture) {
+    return false;
+  }
+  if (filters.municipality) {
+    const value = String(filters.municipality).trim().toLowerCase();
+    const codeMatches = String(record.code_muni) === value;
+    const nameMatches = String(record.name_muni ?? "").toLowerCase().includes(value);
+    return codeMatches || nameMatches;
+  }
+  return true;
 }
