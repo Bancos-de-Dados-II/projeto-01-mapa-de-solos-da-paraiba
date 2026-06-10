@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mapa de Solos da Paraiba</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar" aria-label="Consulta de solo">
+        <header class="brand">
+          <p class="eyebrow">Verde Arido</p>
+          <h1>Solo da Propriedade</h1>
+          <p class="subtitle">Mapa municipal por pH e consulta por coordenada ou contorno rural.</p>
+        </header>
+
+        <form id="coordinate-form" class="query-panel">
+          <label>
+            Busca
+            <input
+              id="coordinate-input"
+              name="coordinate"
+              type="search"
+              placeholder="Coordenadas, municipio ou endereco"
+            />
+          </label>
+          <div id="geocode-results" class="geocode-results hidden"></div>
+
+          <div class="actions">
+            <button type="submit">Consultar solo</button>
+            <button type="button" id="clear-button" class="secondary">Limpar</button>
+          </div>
+        </form>
+
+        <form id="filter-form" class="filters-panel">
+          <h2>Filtros do mapa</h2>
+          <div class="filter-grid">
+            <label>
+              Municipio
+              <select id="municipality-filter" name="municipality">
+                <option value="">Todos</option>
+              </select>
+            </label>
+            <label>
+              Textura
+              <select id="texture-filter" name="texture">
+                <option value="">Todas</option>
+                <option value="Arenoso">Arenoso</option>
+                <option value="Argiloso">Argiloso</option>
+                <option value="Textura media">Textura media</option>
+                <option value="Mista">Mista</option>
+              </select>
+            </label>
+            <label>
+              pH minimo
+              <input id="ph-min-input" name="phMin" type="number" min="0" max="14" step="0.1" />
+            </label>
+            <label>
+              pH maximo
+              <input id="ph-max-input" name="phMax" type="number" min="0" max="14" step="0.1" />
+            </label>
+          </div>
+          <div class="actions">
+            <button type="submit">Aplicar filtros</button>
+            <button type="button" id="clear-filters-button" class="secondary">Limpar filtros</button>
+          </div>
+        </form>
+
+        <section class="soil-info" aria-live="polite">
+          <h2>Informacoes do solo</h2>
+          <div class="metrics-grid">
+            <div class="metric">
+              <span>Area</span>
+              <strong id="area-value">-</strong>
+            </div>
+            <div class="metric">
+              <span>Local</span>
+              <strong id="location-value">-</strong>
+            </div>
+            <div class="metric">
+              <span>pH</span>
+              <strong id="ph-value">-</strong>
+            </div>
+            <div class="metric">
+              <span>Nivel de argila</span>
+              <strong id="clay-value">-</strong>
+            </div>
+          </div>
+
+          <div class="dominant-card">
+            <span>Textura dominante</span>
+            <div>
+              <strong id="dominant-soil">Selecione uma coordenada</strong>
+              <small id="dominant-meta">Os dados aparecem apos a consulta.</small>
+            </div>
+          </div>
+
+          <div class="details-grid">
+            <div>
+              <span>Textura</span>
+              <strong id="texture-value">-</strong>
+            </div>
+            <div>
+              <span>Fertilidade</span>
+              <strong id="fertility-value">-</strong>
+            </div>
+            <div>
+              <span>Nitrogenio</span>
+              <strong id="nitrogen-value">-</strong>
+            </div>
+            <div>
+              <span>CEC</span>
+              <strong id="cec-value">-</strong>
+            </div>
+            <div>
+              <span>Carbono organico</span>
+              <strong id="soc-value">-</strong>
+            </div>
+          </div>
+
+          <section class="composition">
+            <h2>Composicao do solo</h2>
+            <div id="composition-list"></div>
+          </section>
+        </section>
+
+        <p class="source-note">
+          Dados reais por coordenada: SoilGrids 0-30cm; municipio via geobr/Supabase quando disponivel.
+        </p>
+        <p id="status-message" class="status">Carregando...</p>
+      </aside>
+
+      <section class="map-area" aria-label="Mapa">
+        <div class="map-toolbar">
+          <button type="button" id="locate-button" title="Usar minha localizacao">
+            Localizacao
+          </button>
+          <button type="button" id="draw-button">Desenhar contorno</button>
+          <button type="button" id="finish-draw-button" class="hidden">Finalizar</button>
+          <button type="button" id="cancel-draw-button" class="hidden">Cancelar</button>
+        </div>
+        <div id="map-legend" class="map-legend">
+          <strong>pH do solo</strong>
+          <span><i class="ph-low"></i>Acido</span>
+          <span><i class="ph-mid"></i>Levemente acido</span>
+          <span><i class="ph-good"></i>Adequado</span>
+          <span><i class="ph-high"></i>Alcalino</span>
+        </div>
+        <div id="map"></div>
+      </section>
+    </main>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    ></script>
+    <script src="./config.js"></script>
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+
+# Local generated data
+data/
+artifacts/
+screenshots/
+test-results/
+playwright-report/
+coverage/
+
+# Logs and caches
+*.log
+.cache/
+.parcel-cache/
+.vite/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local worktrees
+.worktrees/
+
+.vercel
+RELATORIO_REQUISITOS.md
