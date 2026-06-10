@@ -1,14 +1,16 @@
 # Mapa de Solos da Paraiba
 
-Aplicacao web simples para consultar dados reais de solo por coordenada ou pelo contorno desenhado de uma propriedade rural na Paraiba. O projeto usa Leaflet no frontend, Node.js/Express no backend e Supabase/PostGIS como banco.
+Aplicacao web simples para consultar dados reais de solo por municipio, coordenada ou pelo contorno desenhado de uma propriedade rural na Paraiba. O projeto usa Leaflet no frontend, Node.js/Express no backend, Supabase/PostGIS como banco e Vercel para hospedar frontend e API serverless no mesmo dominio.
 
 ## Fluxo da aplicacao
 
-1. O usuario informa uma coordenada, clica no mapa ou desenha o contorno da propriedade.
-2. O frontend calcula o ponto de consulta. Para poligonos, usa o centroide aproximado do contorno e calcula a area em hectares.
-3. O backend consulta dados reais do SoilGrids para a coordenada selecionada.
-4. A API retorna pH, textura, fertilidade estimada, argila, areia, silte, nitrogenio, CEC e carbono organico.
-5. O painel exibe as informacoes do solo no contexto do Verde Arido, sem CAR, login ou dados privados.
+1. O mapa abre os 223 municipios da Paraiba coloridos por faixa de pH.
+2. O usuario pode clicar em um municipio, selecionar um municipio no filtro, buscar por nome/endereco/coordenada, clicar no mapa ou desenhar o contorno da propriedade.
+3. Para municipios, o backend retorna os dados previamente amostrados no centroide municipal e salvos no Supabase.
+4. Para coordenadas e contornos, o frontend calcula o ponto de consulta. Para poligonos, usa o centroide aproximado do contorno e calcula a area em hectares.
+5. O backend consulta dados reais do SoilGrids para a coordenada selecionada e usa cache no Supabase para evitar chamadas repetidas.
+6. A API retorna pH, textura, fertilidade estimada, argila, areia, silte, nitrogenio, CEC e carbono organico.
+7. O painel exibe as informacoes do solo no contexto do Verde Arido, sem CAR, login ou dados privados.
 
 ## Fontes e integracao
 
@@ -18,7 +20,7 @@ Aplicacao web simples para consultar dados reais de solo por coordenada ou pelo 
 - **Chave municipal**: `code_muni`, codigo IBGE de 7 digitos.
 - **Escopo**: somente Paraiba (`PB` / `code_state = 25`) para manter o volume adequado ao Supabase.
 
-O seed converte o GeoParquet do geobr para GeoJSON, filtra PB e grava a geometria municipal no Supabase. As consultas de propriedades usam a coordenada selecionada pelo agricultor; quando o Supabase esta configurado, a API tambem identifica o municipio por intersecao espacial e salva a resposta real em `soil_point_cache`.
+O seed converte o GeoParquet do geobr para GeoJSON, filtra PB, calcula centroides e grava a geometria municipal no Supabase. Para cada municipio, o SoilGrids e amostrado por coordenadas do centroide e pontos internos de fallback, mantendo cache local para permitir retomada. As consultas de propriedades usam a coordenada selecionada pelo agricultor; quando o Supabase esta configurado, a API tambem identifica o municipio por intersecao espacial e salva a resposta real em `soil_point_cache`.
 
 ## Requisitos
 
@@ -69,12 +71,13 @@ npm run serve:frontend
 
 Abra `http://localhost:5173`.
 
-Sem `DATABASE_URL`, a API ainda sobe e consulta SoilGrids por coordenada. Com `DATABASE_URL`, ela usa Supabase para municipios, intersecao espacial e cache de coordenadas.
+Sem `DATABASE_URL`, a API ainda sobe e consulta SoilGrids por coordenada, mas usa apenas dados locais de exemplo para municipios. Com `DATABASE_URL`, ela usa Supabase para municipios, intersecao espacial e cache de coordenadas.
 
 ## API
 
 - `GET /health`
-- `GET /api/municipios`
+- `GET /api/health`
+- `GET /api/municipios?phMin=&phMax=&texture=&municipality=`
 - `GET /api/solo?lat=-7.468361&lon=-37.669256`
 - `GET /api/geocode?q=`
 
@@ -86,24 +89,31 @@ O frontend chama somente a API. Ele nao acessa Supabase diretamente.
 
 1. Crie o projeto.
 2. Rode `database/schema.sql`.
-3. Configure `DATABASE_URL` no Render.
+3. Configure `DATABASE_URL` no Vercel.
 4. Rode `npm run seed` localmente ou por job controlado.
-
-### Render
-
-Use `render.yaml` ou crie um Web Service:
-
-- Build: `npm install`
-- Start: `npm start`
-- Variaveis: `DATABASE_URL`, `DATABASE_SSL=true`, `CORS_ORIGIN=https://seu-front.vercel.app`
 
 ### Vercel
 
-Configure:
+O projeto esta configurado para servir frontend estatico e backend Express como Vercel Function:
 
 - Build command: `npm run build:frontend`
 - Output directory: `dist`
-- Variavel: `API_BASE_URL=https://sua-api.onrender.com`
+- API: `api/index.js`
+- Variaveis: `DATABASE_URL`, `DATABASE_SSL=true` e `DATABASE_POOL_MAX=3`
+- `API_BASE_URL` pode ficar vazio em producao, pois o frontend chama `/api` no mesmo dominio.
+
+Na Vercel, use a connection string do **Supavisor transaction mode** da Supabase, porque o host direto `db.<project-ref>.supabase.co:5432` pode depender de IPv6. O formato e:
+
+```text
+postgresql://usuario.<project-ref>:senha@aws-1-sa-east-1.pooler.supabase.com:6543/postgres
+```
+
+Deploy pelo CLI:
+
+```bash
+npx vercel
+npx vercel --prod
+```
 
 ## Testes
 
@@ -111,7 +121,7 @@ Configure:
 npm test
 ```
 
-Os testes cobrem conversao SoilGrids, classificacao de textura/fertilidade, consulta por coordenada, cache Supabase, serializacao de coordenadas e API.
+Os testes cobrem conversao SoilGrids, classificacao de textura/fertilidade, filtros municipais, consulta por coordenada, cache Supabase, serializacao de coordenadas, entrada serverless da Vercel e API.
 
 ## Observacoes
 
