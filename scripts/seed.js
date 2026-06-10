@@ -14,6 +14,7 @@ import {
   GEOBR_MUNICIPALITIES_ASSET,
   validateParaibaFeatures
 } from "./lib/geobr.js";
+import { buildSoilSampleCandidates, hasCoreSoilData } from "./lib/sampling.js";
 import { fetchSoilGrids, normalizeSoilRecord } from "./lib/soilgrids.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -53,13 +54,17 @@ async function main() {
     const center = centroid(feature).geometry.coordinates;
     const centroidPoint = { lon: round(center[0], 6), lat: round(center[1], 6) };
 
-    if (!cache[codeMuni]) {
-      console.log(
-        `Consultando SoilGrids ${index + 1}/${features.length}: ${feature.properties.name_muni}`
-      );
-      cache[codeMuni] = await fetchSoilGrids(centroidPoint);
-      await writeFile(cachePath, JSON.stringify(cache, null, 2));
-      await delay(Number(args.delayMs ?? process.env.SOILGRIDS_DELAY_MS ?? 12500));
+    if (!hasCoreSoilData(cache[codeMuni])) {
+      const candidates = buildSoilSampleCandidates({ feature, centroid: centroidPoint });
+      cache[codeMuni] = await fetchFirstUsableSoil({
+        codeMuni,
+        candidates,
+        feature,
+        index,
+        total: features.length,
+        cache,
+        cachePath
+      });
     }
 
     rows.push(
@@ -93,6 +98,40 @@ async function main() {
   }
 
   console.log(`Seed concluido: ${rows.length} municipios gravados.`);
+}
+
+async function fetchFirstUsableSoil({
+  codeMuni,
+  candidates,
+  feature,
+  index,
+  total,
+  cache,
+  cachePath
+}) {
+  let fallback = cache[codeMuni] ?? null;
+
+  for (const [candidateIndex, candidate] of candidates.entries()) {
+    console.log(
+      `Consultando SoilGrids ${index + 1}/${total}: ${feature.properties.name_muni} ` +
+        `(${candidateIndex + 1}/${candidates.length})`
+    );
+
+    const soil = await fetchSoilGrids(candidate);
+    if (!fallback || hasCoreSoilData(soil)) {
+      fallback = soil;
+      cache[codeMuni] = soil;
+      await writeFile(cachePath, JSON.stringify(cache, null, 2));
+    }
+
+    await delay(Number(args.delayMs ?? process.env.SOILGRIDS_DELAY_MS ?? 12500));
+
+    if (hasCoreSoilData(soil)) {
+      return soil;
+    }
+  }
+
+  return fallback;
 }
 
 async function upsertMunicipality(pool, row) {
