@@ -6,7 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const frontendDir = path.join(rootDir, "frontend");
 const distDir = path.join(rootDir, "dist");
-const apiBaseUrl = process.env.API_BASE_URL ?? "http://localhost:3000";
+const apiBaseUrl = process.env.API_BASE_URL ?? "";
 
 await rm(distDir, { recursive: true, force: true });
 await mkdir(distDir, { recursive: true });

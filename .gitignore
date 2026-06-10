@@ -32,3 +32,5 @@ Thumbs.db
 
 # Local worktrees
 .worktrees/
+
+.vercel
