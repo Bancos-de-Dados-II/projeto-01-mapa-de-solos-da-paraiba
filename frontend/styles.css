@@ -104,7 +104,8 @@ h2 {
   margin-bottom: 0;
 }
 
-.query-panel {
+.query-panel,
+.filters-panel {
   background: linear-gradient(135deg, #13613b, #765025);
   border-radius: 8px;
   box-shadow: var(--shadow);
@@ -113,7 +114,8 @@ h2 {
   padding: 18px;
 }
 
-label {
+.query-panel label,
+.filters-panel label {
   color: #fff;
   display: grid;
   font-size: 0.86rem;
@@ -121,7 +123,8 @@ label {
   gap: 7px;
 }
 
-input {
+input,
+select {
   background: #fffdf4;
   border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 8px;
@@ -132,6 +135,7 @@ input {
 }
 
 input:focus,
+select:focus,
 button:focus-visible {
   outline: 3px solid rgba(239, 131, 64, 0.34);
   outline-offset: 1px;
@@ -161,6 +165,43 @@ button:hover {
 button.secondary {
   background: rgba(255, 255, 255, 0.92);
   color: var(--ink);
+}
+
+.filters-panel {
+  background: #f8f8f0;
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.filters-panel h2 {
+  margin-bottom: 0;
+}
+
+.filters-panel label {
+  color: var(--ink);
+}
+
+.filter-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.filter-grid label:first-child {
+  grid-column: 1 / -1;
+}
+
+.geocode-results {
+  display: grid;
+  gap: 6px;
+}
+
+.geocode-results button {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  min-height: 36px;
+  padding: 8px 10px;
+  text-align: left;
 }
 
 .soil-info,
@@ -343,6 +384,70 @@ button.secondary {
   min-height: 40px;
 }
 
+.map-legend {
+  background: rgba(255, 254, 248, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  bottom: 18px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 6px;
+  font-size: 0.78rem;
+  left: 18px;
+  padding: 10px 12px;
+  position: absolute;
+  z-index: 500;
+}
+
+.map-legend strong {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+}
+
+.map-legend span {
+  align-items: center;
+  display: grid;
+  gap: 7px;
+  grid-template-columns: auto 1fr;
+}
+
+.map-legend i {
+  border-radius: 3px;
+  display: inline-block;
+  height: 12px;
+  width: 18px;
+}
+
+.ph-low {
+  background: #c84b31;
+}
+
+.ph-mid {
+  background: #e2a340;
+}
+
+.ph-good {
+  background: #4f9d5d;
+}
+
+.ph-high {
+  background: #6c8fbd;
+}
+
+.municipality-label {
+  background: rgba(255, 254, 248, 0.82);
+  border: 1px solid rgba(20, 39, 25, 0.18);
+  border-radius: 4px;
+  color: #102317;
+  font-size: 0.67rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 3px 5px;
+  pointer-events: none;
+  text-shadow: 0 1px 0 #fff;
+  white-space: nowrap;
+}
+
 .hidden {
   display: none;
 }
@@ -366,6 +471,23 @@ button.secondary {
   .sidebar {
     border-bottom: 1px solid var(--line);
     border-right: 0;
+  }
+
+  .map-toolbar {
+    left: 52px;
+    right: 14px;
+    top: 14px;
+  }
+
+  .map-toolbar button {
+    flex: 1;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .map-legend {
+    bottom: 12px;
+    left: 12px;
   }
 
   .map-area {

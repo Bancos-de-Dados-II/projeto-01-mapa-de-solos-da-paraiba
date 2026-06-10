@@ -12,6 +12,15 @@ export function buildSoilQuery({ lat, lon }) {
   return params.toString();
 }
 
+export function buildMunicipalityQuery({ phMin, phMax, texture, municipality } = {}) {
+  const params = new URLSearchParams();
+  appendIfPresent(params, "phMin", phMin);
+  appendIfPresent(params, "phMax", phMax);
+  appendIfPresent(params, "texture", texture);
+  appendIfPresent(params, "municipality", municipality);
+  return params.toString();
+}
+
 export function parseCoordinateInput(value) {
   const numbers = extractNumbers(value);
   if (numbers.length < 2) {
@@ -42,6 +51,15 @@ export function isCoordinateInParaiba({ lat, lon }) {
   );
 }
 
+export function normalizeSearchText(value) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
 function extractNumbers(value) {
   return [...String(value ?? "").matchAll(/[-+]?\d+(?:[.,]\d+)?/g)]
     .map((match) => Number(match[0].replace(",", ".")))
@@ -57,4 +75,11 @@ function normalizeCoordinate({ lat, lon }) {
 
 function round(value, digits) {
   return Number(value.toFixed(digits));
+}
+
+function appendIfPresent(params, key, value) {
+  const text = String(value ?? "").trim();
+  if (text) {
+    params.set(key, text);
+  }
 }

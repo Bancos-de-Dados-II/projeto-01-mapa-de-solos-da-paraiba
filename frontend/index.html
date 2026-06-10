@@ -16,24 +16,58 @@
         <header class="brand">
           <p class="eyebrow">Verde Arido</p>
           <h1>Solo da Propriedade</h1>
-          <p class="subtitle">Consulta por coordenada e contorno da area rural.</p>
+          <p class="subtitle">Mapa municipal por pH e consulta por coordenada ou contorno rural.</p>
         </header>
 
         <form id="coordinate-form" class="query-panel">
           <label>
-            Coordenadas
+            Busca
             <input
               id="coordinate-input"
               name="coordinate"
-              type="text"
-              inputmode="decimal"
-              placeholder="-7.468361, -37.669256"
+              type="search"
+              placeholder="Coordenadas, municipio ou endereco"
             />
           </label>
+          <div id="geocode-results" class="geocode-results hidden"></div>
 
           <div class="actions">
             <button type="submit">Consultar solo</button>
             <button type="button" id="clear-button" class="secondary">Limpar</button>
+          </div>
+        </form>
+
+        <form id="filter-form" class="filters-panel">
+          <h2>Filtros do mapa</h2>
+          <div class="filter-grid">
+            <label>
+              Municipio
+              <select id="municipality-filter" name="municipality">
+                <option value="">Todos</option>
+              </select>
+            </label>
+            <label>
+              Textura
+              <select id="texture-filter" name="texture">
+                <option value="">Todas</option>
+                <option value="Arenoso">Arenoso</option>
+                <option value="Argiloso">Argiloso</option>
+                <option value="Textura media">Textura media</option>
+                <option value="Mista">Mista</option>
+              </select>
+            </label>
+            <label>
+              pH minimo
+              <input id="ph-min-input" name="phMin" type="number" min="0" max="14" step="0.1" />
+            </label>
+            <label>
+              pH maximo
+              <input id="ph-max-input" name="phMax" type="number" min="0" max="14" step="0.1" />
+            </label>
+          </div>
+          <div class="actions">
+            <button type="submit">Aplicar filtros</button>
+            <button type="button" id="clear-filters-button" class="secondary">Limpar filtros</button>
           </div>
         </form>
 
@@ -109,6 +143,13 @@
           <button type="button" id="draw-button">Desenhar contorno</button>
           <button type="button" id="finish-draw-button" class="hidden">Finalizar</button>
           <button type="button" id="cancel-draw-button" class="hidden">Cancelar</button>
+        </div>
+        <div id="map-legend" class="map-legend">
+          <strong>pH do solo</strong>
+          <span><i class="ph-low"></i>Acido</span>
+          <span><i class="ph-mid"></i>Levemente acido</span>
+          <span><i class="ph-good"></i>Adequado</span>
+          <span><i class="ph-high"></i>Alcalino</span>
         </div>
         <div id="map"></div>
       </section>

@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { buildSoilQuery, parseCoordinateInput } from "../frontend/js/filters.js";
+import {
+  buildMunicipalityQuery,
+  buildSoilQuery,
+  normalizeSearchText,
+  parseCoordinateInput
+} from "../frontend/js/filters.js";
 
 describe("frontend coordinate helpers", () => {
   it("serializes coordinates for soil analysis", () => {
@@ -30,5 +35,20 @@ describe("frontend coordinate helpers", () => {
 
   it("returns null when coordinates are outside Paraiba", () => {
     assert.equal(parseCoordinateInput("-23.55052, -46.633308"), null);
+  });
+
+  it("serializes municipality filters", () => {
+    const query = buildMunicipalityQuery({
+      phMin: "6",
+      phMax: "7.2",
+      texture: "Textura media",
+      municipality: "2507507"
+    });
+
+    assert.equal(query, "phMin=6&phMax=7.2&texture=Textura+media&municipality=2507507");
+  });
+
+  it("normalizes search text for local municipality lookup", () => {
+    assert.equal(normalizeSearchText("São José de Princesa"), "sao jose de princesa");
   });
 });
